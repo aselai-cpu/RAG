@@ -69,7 +69,9 @@ System: You are an AI assistant. Answer based on this context:
 "Employees receive 15 days PTO per year..."
 "New hires accrue PTO starting from day one..."
 
-User: What is the vacation policy?```
+User: What is the vacation policy?
+
+```
 
 **Prof. Chen**: Ah! So the LLM sees the evidence before reasoning about the answer!
 
