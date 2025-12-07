@@ -1,0 +1,17 @@
+@startuml C4_Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title System Context Diagram for RAG Application
+
+Person(user, "User", "Someone who wants to query documents using AI")
+
+System(rag_system, "RAG Application", "Allows users to upload documents and ask questions with AI-powered responses")
+
+System_Ext(openai, "OpenAI API", "Provides LLM capabilities for embeddings and chat completions")
+
+Rel(user, rag_system, "Uploads documents and asks questions", "HTTPS")
+Rel(rag_system, openai, "Generates embeddings and responses", "HTTPS/REST API")
+
+@enduml

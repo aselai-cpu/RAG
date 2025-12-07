@@ -1,0 +1,74 @@
+@startuml DDD Entity Model
+
+title Domain-Driven Design - Entity Model
+
+package "Domain Layer" {
+
+    package "Entities" {
+        class Document {
+            -id: str
+            -content: str
+            -source_type: str
+            -file_name: Optional[str]
+            -metadata: dict
+            -created_at: datetime
+            -chunk_count: int
+            --
+            +get_display_name(): str
+            +to_dict(): dict
+        }
+
+        class Message {
+            -id: str
+            -role: str
+            -content: str
+            -created_at: datetime
+            -sources: List[str]
+            -metadata: dict
+            --
+            +to_dict(): dict
+        }
+
+        class ChatSession {
+            -id: str
+            -messages: List[Message]
+            -created_at: datetime
+            -updated_at: datetime
+            -metadata: dict
+            --
+            +add_message(message: Message): void
+            +get_history(limit: Optional[int]): List[Message]
+            +to_dict(): dict
+        }
+    }
+
+    package "Repository Interfaces" <<Anti-Corruption Layer>> {
+        interface IDocumentRepository {
+            +save(document: Document): void
+            +get_by_id(id: str): Optional[Document]
+            +get_all(): List[Document]
+            +delete(id: str): bool
+            +search_similar(query: str, top_k: int): List[Tuple[Document, float]]
+        }
+
+        interface IChatRepository {
+            +save_session(session: ChatSession): void
+            +get_session(id: str): Optional[ChatSession]
+            +get_all_sessions(): List[ChatSession]
+            +add_message(session_id: str, message: Message): void
+        }
+    }
+}
+
+ChatSession "1" *-- "many" Message : contains
+IDocumentRepository ..> Document : uses
+IChatRepository ..> ChatSession : uses
+IChatRepository ..> Message : uses
+
+note right of IDocumentRepository
+    Anti-Corruption Layer:
+    Protects domain from
+    infrastructure changes
+end note
+
+@enduml

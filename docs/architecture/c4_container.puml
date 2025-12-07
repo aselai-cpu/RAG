@@ -1,0 +1,27 @@
+@startuml C4_Container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container Diagram for RAG Application
+
+Person(user, "User", "Someone who wants to query documents")
+
+System_Boundary(rag_system, "RAG Application") {
+    Container(streamlit_ui, "Streamlit UI", "Python/Streamlit", "Provides user interface for document upload and chat")
+    Container(app_services, "Application Services", "Python", "Orchestrates RAG workflow and chat sessions")
+    Container(domain_layer, "Domain Layer", "Python", "Contains core business entities and logic")
+    Container(infrastructure, "Infrastructure Layer", "Python", "Handles external integrations")
+    ContainerDb(chroma, "ChromaDB", "Vector Database", "Stores document embeddings")
+}
+
+System_Ext(openai, "OpenAI API", "LLM and Embedding Services")
+
+Rel(user, streamlit_ui, "Interacts with", "HTTPS")
+Rel(streamlit_ui, app_services, "Calls", "Python")
+Rel(app_services, domain_layer, "Uses", "Python")
+Rel(app_services, infrastructure, "Uses", "Python")
+Rel(infrastructure, chroma, "Reads/Writes", "Python API")
+Rel(infrastructure, openai, "API Calls", "HTTPS/REST")
+
+@enduml

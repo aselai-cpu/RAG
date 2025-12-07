@@ -1,0 +1,45 @@
+### Vision
+Fill the jaggered intelligence provided by LLM for tech utility
+
+### Mission
+I want to create RAG application, both examplary and feature rich which can be use as basis for learning RAG and or as a precursor for other rag applications. Even someone doesn't come from python programming background. 
+
+
+## Technology
+Language should be Python, use langchain, vector database or anyother tech that facilate implementing a proper rag. 
+
+## UX
+There should be a UI user able to submit documents in PDF, text or past copied text directly to provide content for the RAG. 
+UI should Two Vertical Pannels to show uploaded documents and uploading option 
+O ther window for chat and chat history, at bottom user can type the new chat, on top the chat history. Similar to whatps app chat. And options to copy perticular responses from LLM
+
+## LLM Utilization 
+I want examplary RAG solution, simple implementation without compramising any features of a rag, this should be robust.  
+Should use OpenAI API keys
+Use OpenAI provide features for RAG creation
+Check existing RAG implementation and learn the best practices that suites for 2025/26
+
+###Documentation
+Create a comprehensive documentation about the solution
+version of documentations
+1. For a Novice, explaing concepts in basics
+2. To Professional, about the solution and process
+3. Create document explaining philosphyical foundation and history behind decisions 
+4. Create document walk through the python code
+5. Create FAQ 
+6. Create a transcript for dialog where senior engineer walk through the code with new developer
+7. Create a transcript for dialog where Engineer explaing RAG to a Philosopher
+
+### Architecture
+1. Use domain Driven design ( Entities, AntiCorruption layers etc. ) document all design decisions
+1. Create comprehensive architecture diagram, use PlantUML, DDD for sequrence and entity diagram
+2. If there's need to directly create diagrams for ease of conceptual understanding do it
+3. Create C4 diagramss
+
+###Agentic AI work
+
+in a seperate folder document all the agentic work done while creating this project. Todo's and thinking context document it all in the folder. 
+
+### Future Learning
+Create another file contining list learning resource on the matter and staple research papers on the rag along with documents I can refer on it. 
+

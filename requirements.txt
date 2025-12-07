@@ -1,0 +1,26 @@
+# Core RAG Dependencies
+langchain==0.3.14
+langchain-community==0.3.14
+langchain-openai==0.2.14
+
+# Vector Database
+chromadb==0.5.23
+
+# OpenAI
+openai==1.59.7
+
+# Document Processing
+PyPDF2==3.0.1
+
+# UI Framework
+streamlit==1.41.1
+
+# Utilities
+python-dotenv==1.0.1
+
+# Data Handling
+numpy==1.26.4
+pandas==2.2.3
+
+# Type Hints
+typing-extensions==4.12.2

@@ -1,0 +1,36 @@
+@startuml C4_Component
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Component Diagram - Application Layer
+
+Container_Boundary(app_layer, "Application Layer") {
+    Component(rag_service, "RAG Service", "Python Class", "Orchestrates retrieval and generation")
+    Component(chat_service, "Chat Service", "Python Class", "Manages chat sessions")
+}
+
+Container_Boundary(domain, "Domain Layer") {
+    Component(document_entity, "Document Entity", "Python Class", "Represents a document")
+    Component(chat_entity, "Chat/Message Entity", "Python Class", "Represents chat sessions")
+    Component(doc_repo_interface, "IDocumentRepository", "Interface", "Document storage contract")
+}
+
+Container_Boundary(infra, "Infrastructure Layer") {
+    Component(chroma_repo, "ChromaDocumentRepository", "Python Class", "ChromaDB implementation")
+    Component(openai_service, "OpenAI Service", "Python Class", "LLM API wrapper")
+    Component(doc_loader, "Document Loader", "Python Class", "Loads PDFs and text")
+}
+
+ContainerDb(chroma, "ChromaDB", "Vector Database")
+System_Ext(openai_api, "OpenAI API")
+
+Rel(rag_service, doc_repo_interface, "Uses")
+Rel(rag_service, openai_service, "Uses")
+Rel(chat_service, rag_service, "Uses")
+Rel(doc_repo_interface, chroma_repo, "Implemented by")
+Rel(chroma_repo, chroma, "Stores/Retrieves")
+Rel(openai_service, openai_api, "Calls")
+Rel(doc_loader, document_entity, "Creates")
+
+@enduml

@@ -1,0 +1,79 @@
+@startuml RAG Query Sequence
+
+title RAG Query Flow (Retrieval-Augmented Generation)
+
+actor User
+participant "Streamlit UI" as UI
+participant "Chat Service" as Chat
+participant "RAG Service" as RAG
+participant "ChromaDocumentRepository" as Repo
+participant "ChromaDB" as Chroma
+participant "OpenAI Service" as OpenAI
+participant "OpenAI API" as API
+
+User -> UI: Enter question
+activate UI
+
+UI -> Chat: send_message_stream(question)
+activate Chat
+
+Chat -> Chat: Create user Message entity
+Chat -> Chat: Add to session
+
+Chat -> RAG: query_stream(question, history)
+activate RAG
+
+== Retrieval Phase ==
+
+RAG -> Repo: search_similar(query, top_k=5)
+activate Repo
+
+Repo -> Chroma: query(query_texts, n_results=5)
+activate Chroma
+Chroma -> Chroma: Compute embeddings
+Chroma -> Chroma: Search similar vectors
+Chroma --> Repo: Chunks with distances
+deactivate Chroma
+
+Repo -> Repo: Convert distances to similarities
+Repo -> Repo: Create partial Documents
+Repo --> RAG: List[(Document, similarity)]
+deactivate Repo
+
+RAG -> RAG: Filter by threshold (> 0.5)
+RAG -> RAG: Build context from chunks
+
+== Generation Phase ==
+
+RAG -> RAG: Prepare messages with context
+RAG -> OpenAI: generate_response_stream(messages, context)
+activate OpenAI
+
+OpenAI -> API: Create chat completion (stream=True)
+activate API
+
+loop Stream chunks
+    API --> OpenAI: Response chunk
+    OpenAI --> RAG: Text chunk
+    RAG --> Chat: Text chunk
+    Chat --> UI: Display chunk
+    UI --> User: Show streaming text
+end
+
+deactivate API
+deactivate OpenAI
+
+== Finalization ==
+
+RAG --> Chat: Source document IDs
+deactivate RAG
+
+Chat -> Chat: Create assistant Message
+Chat -> Chat: Add to session
+Chat --> UI: Complete message
+deactivate Chat
+
+UI --> User: Show sources
+deactivate UI
+
+@enduml

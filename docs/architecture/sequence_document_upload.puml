@@ -1,0 +1,60 @@
+@startuml Document Upload Sequence
+
+title Document Upload Flow
+
+actor User
+participant "Streamlit UI" as UI
+participant "DocumentLoader" as Loader
+participant "Document Entity" as Doc
+participant "RAG Service" as RAG
+participant "ChromaDocumentRepository" as Repo
+participant "Text Splitter" as Splitter
+participant "ChromaDB" as Chroma
+
+User -> UI: Upload PDF/Text file
+activate UI
+
+UI -> Loader: load_from_pdf(file_bytes, filename)
+activate Loader
+
+Loader -> Loader: Extract text from PDF
+Loader -> Doc: Create Document entity
+activate Doc
+Doc -> Doc: Validate content
+Doc --> Loader: Document
+deactivate Doc
+
+Loader --> UI: Document
+deactivate Loader
+
+UI -> RAG: add_document(document)
+activate RAG
+
+RAG -> Repo: save(document)
+activate Repo
+
+Repo -> Splitter: split_text(document.content)
+activate Splitter
+Splitter --> Repo: List of chunks
+deactivate Splitter
+
+Repo -> Repo: Prepare metadata for chunks
+
+loop For each chunk
+    Repo -> Chroma: add(chunk, metadata, id)
+    activate Chroma
+    Chroma --> Repo: Success
+    deactivate Chroma
+end
+
+Repo -> Repo: Cache document metadata
+Repo --> RAG: Success
+deactivate Repo
+
+RAG --> UI: Success
+deactivate RAG
+
+UI --> User: Display success message
+deactivate UI
+
+@enduml
