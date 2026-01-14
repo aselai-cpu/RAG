@@ -1,15 +1,35 @@
 @startuml C4_Context
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+' Using basic PlantUML syntax for compatibility with older versions
+' If you need C4 styling, update PlantUML to version 1.2021.6 or later
+
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
 
 title System Context Diagram for RAG Application
 
-Person(user, "User", "Someone who wants to query documents using AI")
+actor User as user
 
-System(rag_system, "RAG Application", "Allows users to upload documents and ask questions with AI-powered responses")
+rectangle "RAG Application" as rag_system {
+  note right
+    Allows users to upload documents
+    and ask questions with AI-powered
+    responses
+  end note
+}
 
-System_Ext(openai, "OpenAI API", "Provides LLM capabilities for embeddings and chat completions")
+cloud "OpenAI API" as openai {
+  note right
+    Provides LLM capabilities for
+    embeddings and chat completions
+  end note
+}
 
-Rel(user, rag_system, "Uploads documents and asks questions", "HTTPS")
-Rel(rag_system, openai, "Generates embeddings and responses", "HTTPS/REST API")
+user --> rag_system : Uploads documents\nand asks questions\nHTTPS
+rag_system --> openai : Generates embeddings\nand responses\nHTTPS/REST API
+
+note right of user
+  Someone who wants to query
+  documents using AI
+end note
 
 @enduml

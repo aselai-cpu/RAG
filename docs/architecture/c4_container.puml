@@ -1,25 +1,53 @@
 @startuml C4_Container
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+' Using basic PlantUML syntax for compatibility with older versions
+' If you need C4 styling, update PlantUML to version 1.2021.6 or later
+
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
 
 title Container Diagram for RAG Application
 
-Person(user, "User", "Someone who wants to query documents")
+actor User as user
 
-System_Boundary(rag_system, "RAG Application") {
-    Container(streamlit_ui, "Streamlit UI", "Python/Streamlit", "Provides user interface for document upload and chat")
-    Container(app_services, "Application Services", "Python", "Orchestrates RAG workflow and chat sessions")
-    Container(domain_layer, "Domain Layer", "Python", "Contains core business entities and logic")
-    Container(infrastructure, "Infrastructure Layer", "Python", "Handles external integrations")
-    ContainerDb(chroma, "ChromaDB", "Vector Database", "Stores document embeddings")
+package "RAG Application" #LightBlue {
+  component [Streamlit UI\nPython/Streamlit] as streamlit_ui
+  component [Application Services\nPython] as app_services
+  component [Domain Layer\nPython] as domain_layer
+  component [Infrastructure Layer\nPython] as infrastructure
+  database [ChromaDB\nVector Database] as chroma
 }
 
-System_Ext(openai, "OpenAI API", "LLM and Embedding Services")
+cloud [OpenAI API\nLLM and Embedding Services] as openai
 
-Rel(user, streamlit_ui, "Interacts with", "HTTPS")
-Rel(streamlit_ui, app_services, "Calls", "Python")
-Rel(app_services, domain_layer, "Uses", "Python")
-Rel(app_services, infrastructure, "Uses", "Python")
-Rel(infrastructure, chroma, "Reads/Writes", "Python API")
-Rel(infrastructure, openai, "API Calls", "HTTPS/REST")
+user --> streamlit_ui : Interacts with\nHTTPS
+streamlit_ui --> app_services : Calls\nPython
+app_services --> domain_layer : Uses\nPython
+app_services --> infrastructure : Uses\nPython
+infrastructure --> chroma : Reads/Writes\nPython API
+infrastructure --> openai : API Calls\nHTTPS/REST
+
+note right of streamlit_ui
+  Provides user interface
+  for document upload and chat
+end note
+
+note right of app_services
+  Orchestrates RAG workflow
+  and chat sessions
+end note
+
+note right of domain_layer
+  Contains core business
+  entities and logic
+end note
+
+note right of infrastructure
+  Handles external
+  integrations
+end note
+
+note right of chroma
+  Stores document embeddings
+end note
 
 @enduml

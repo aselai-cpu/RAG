@@ -1,5 +1,41 @@
 @startuml C4_Component
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' Using basic PlantUML syntax for compatibility with older versions
+' If you need C4 styling, update PlantUML to version 1.2021.6 or later
+
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+title Component Diagram - Application Layer
+
+package "Application Layer" #LightBlue {
+  component [RAG Service] as RAGService
+  component [Chat Service] as ChatService
+}
+
+package "Domain Layer" #LightGreen {
+  component [Document Entity] as DocumentEntity
+  component [Chat/Message Entity] as ChatEntity
+  interface [IDocumentRepository] as DocRepoInterface
+}
+
+package "Infrastructure Layer" #LightYellow {
+  component [ChromaDocumentRepository] as ChromaRepo
+  component [OpenAI Service] as OpenAIService
+  component [Document Loader] as DocLoader
+}
+
+database ChromaDB #LightCoral
+cloud OpenAI_API #LightGray
+
+RAGService --> DocRepoInterface : uses
+RAGService --> OpenAIService : uses
+ChatService --> RAGService : uses
+ChromaRepo ..|> DocRepoInterface : implements
+ChromaRepo --> ChromaDB : stores/retrieves
+OpenAIService --> OpenAI_API : calls
+DocLoader --> DocumentEntity : creates
+
+@enduml
 
 title Component Diagram - Application Layer
 

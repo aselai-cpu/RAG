@@ -1,0 +1,62 @@
+@startuml C4_Component_Simple
+
+title Component Diagram - Application Layer
+
+package "Application Layer" {
+  class RAGService {
+    + query()
+    + query_stream()
+  }
+  class ChatService {
+    + send_message()
+    + send_message_stream()
+  }
+}
+
+package "Domain Layer" {
+  class Document {
+    + id
+    + content
+    + source_type
+  }
+  class Message {
+    + role
+    + content
+  }
+  interface IDocumentRepository {
+    + save()
+    + get_by_id()
+    + search_similar()
+  }
+}
+
+package "Infrastructure Layer" {
+  class ChromaDocumentRepository {
+    + save()
+    + search_similar()
+  }
+  class OpenAIService {
+    + generate_response()
+    + generate_response_stream()
+  }
+  class DocumentLoader {
+    + load_from_pdf()
+    + load_from_text()
+  }
+}
+
+database ChromaDB {
+}
+
+cloud OpenAI_API {
+}
+
+RAGService --> IDocumentRepository
+RAGService --> OpenAIService
+ChatService --> RAGService
+ChromaDocumentRepository ..|> IDocumentRepository
+ChromaDocumentRepository --> ChromaDB
+OpenAIService --> OpenAI_API
+DocumentLoader --> Document
+
+@enduml
