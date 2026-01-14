@@ -69,7 +69,10 @@ class OpenAIService:
         used_model = model or self.model
         used_temp = temperature or self.temperature
 
-        logger.info(f"Starting OpenAI API call: model={used_model}, temperature={used_temp}, num_messages={len(messages)}, has_context={context is not None}")
+        # Log request details
+        logger.info("=" * 80)
+        logger.info(f"OpenAI API Request - model={used_model}, temperature={used_temp}, num_messages={len(messages)}, has_context={context is not None}")
+        logger.info("-" * 80)
 
         try:
             # Build the messages list
@@ -78,7 +81,7 @@ class OpenAIService:
             # Add system message with context if provided
             if context:
                 context_length = len(context)
-                logger.debug(f"Adding context to system message: context_length={context_length}")
+                logger.debug(f"Adding context to system message: context_length={context_length} chars")
                 system_message = {
                     "role": "system",
                     "content": f"""You are a helpful AI assistant that answers questions based on the provided context.
@@ -89,6 +92,9 @@ Context:
 """,
                 }
                 api_messages.append(system_message)
+                logger.debug("System message with context added:")
+                logger.debug(f"Full Context ({context_length} chars):")
+                logger.debug(context)
             else:
                 # Default system message
                 api_messages.append(
@@ -97,41 +103,85 @@ Context:
                         "content": "You are a helpful AI assistant that provides accurate and informative responses.",
                     }
                 )
+                logger.debug("Default system message added (no context)")
 
             # Add conversation messages
             api_messages.extend(messages)
 
-            # Log user query
+            # Log full request structure
+            logger.info("Request Messages:")
+            for i, msg in enumerate(api_messages):
+                role = msg.get("role", "unknown")
+                content = msg.get("content", "")
+                content_length = len(content)
+                logger.info(f"  [{i+1}] {role.upper()} ({content_length} chars):")
+                logger.info(content)
+                logger.info("")  # Empty line for readability
+            
+            # Log user query separately for easy reference
             if messages:
                 last_message = messages[-1]
-                logger.info(f"User query: '{last_message.get('content', '')[:200]}...'")
+                user_query = last_message.get('content', '')
+                query_length = len(user_query)
+                logger.info(f"User Query ({query_length} chars):")
+                logger.info(user_query)
 
             # Generate response
             logger.debug(f"Sending request to OpenAI API: total_messages={len(api_messages)}")
+            request_timestamp = time.time()
             response = self.client.chat.completions.create(
                 model=used_model,
                 messages=api_messages,
                 temperature=used_temp,
             )
+            response_timestamp = time.time()
+            api_latency = response_timestamp - request_timestamp
 
             # Extract response
             response_text = response.choices[0].message.content
 
+            # Log full response
+            logger.info("-" * 80)
+            logger.info("OpenAI API Response:")
+            logger.info(f"Full Response ({len(response_text)} chars):")
+            logger.info(response_text)
+            logger.info("-" * 80)
+
             # Log token usage
-            if hasattr(response, 'usage'):
-                logger.info(f"OpenAI API usage: prompt_tokens={response.usage.prompt_tokens}, "
+            if hasattr(response, 'usage') and response.usage:
+                logger.info(f"Token Usage: prompt_tokens={response.usage.prompt_tokens}, "
                            f"completion_tokens={response.usage.completion_tokens}, "
                            f"total_tokens={response.usage.total_tokens}")
+                
+                # Calculate estimated cost (approximate, varies by model)
+                # GPT-4 Turbo: ~$0.01/1K input tokens, ~$0.03/1K output tokens
+                if "gpt-4" in used_model.lower():
+                    estimated_cost = (response.usage.prompt_tokens / 1000 * 0.01) + (response.usage.completion_tokens / 1000 * 0.03)
+                    logger.info(f"Estimated Cost: ${estimated_cost:.4f}")
 
             elapsed = time.time() - start_time
-            logger.info(f"OpenAI API call completed: response_length={len(response_text)}, time={elapsed:.2f}s")
-            logger.debug(f"Response preview: '{response_text[:200]}...'")
+            logger.info(f"Request completed: response_length={len(response_text)}, api_latency={api_latency:.2f}s, total_time={elapsed:.2f}s")
+            logger.info("=" * 80)
 
             return response_text
 
         except Exception as e:
             elapsed = time.time() - start_time
-            logger.error(f"Error in OpenAI API call: error={str(e)}, time={elapsed:.2f}s", exc_info=True)
+            logger.error("-" * 80)
+            logger.error(f"OpenAI API Error: error={str(e)}, model={used_model}, time={elapsed:.2f}s")
+            logger.error(f"Request details: num_messages={len(api_messages)}, has_context={context is not None}")
+            if messages:
+                last_message = messages[-1]
+                user_query = last_message.get('content', '')
+                query_length = len(user_query)
+                logger.error(f"User query that failed ({query_length} chars):")
+                logger.error(user_query)
+            if context:
+                logger.error(f"Context that was used ({len(context)} chars):")
+                logger.error(context)
+            logger.error("-" * 80)
+            logger.error("Full error traceback:", exc_info=True)
+            logger.error("=" * 80)
             raise
 
     def generate_response_stream(
@@ -155,10 +205,21 @@ Context:
         Yields:
             Chunks of the response text as they are generated
         """
+        start_time = time.time()
+        used_model = model or self.model
+        used_temp = temperature or self.temperature
+
+        # Log request details
+        logger.info("=" * 80)
+        logger.info(f"OpenAI API Streaming Request - model={used_model}, temperature={used_temp}, num_messages={len(messages)}, has_context={context is not None}")
+        logger.info("-" * 80)
+
         # Build the messages list (same as generate_response)
         api_messages = []
 
         if context:
+            context_length = len(context)
+            logger.debug(f"Adding context to system message: context_length={context_length} chars")
             system_message = {
                 "role": "system",
                 "content": f"""You are a helpful AI assistant that answers questions based on the provided context.
@@ -169,6 +230,9 @@ Context:
 """,
             }
             api_messages.append(system_message)
+            logger.debug("System message with context added:")
+            logger.debug(f"Full Context ({context_length} chars):")
+            logger.debug(context)
         else:
             api_messages.append(
                 {
@@ -176,20 +240,96 @@ Context:
                     "content": "You are a helpful AI assistant that provides accurate and informative responses.",
                 }
             )
+            logger.debug("Default system message added (no context)")
 
         api_messages.extend(messages)
 
-        # Generate streaming response
-        stream = self.client.chat.completions.create(
-            model=model or self.model,
-            messages=api_messages,
-            temperature=temperature or self.temperature,
-            stream=True,
-        )
+        # Log full request structure
+        logger.info("Request Messages:")
+        for i, msg in enumerate(api_messages):
+            role = msg.get("role", "unknown")
+            content = msg.get("content", "")
+            content_length = len(content)
+            logger.info(f"  [{i+1}] {role.upper()} ({content_length} chars):")
+            logger.info(content)
+            logger.info("")  # Empty line for readability
+        
+        # Log user query separately
+        if messages:
+            last_message = messages[-1]
+            user_query = last_message.get('content', '')
+            query_length = len(user_query)
+            logger.info(f"User Query ({query_length} chars):")
+            logger.info(user_query)
 
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content
+        # Track streaming response
+        full_response = ""
+        chunk_count = 0
+        first_chunk_time = None
+
+        try:
+            # Generate streaming response
+            logger.debug(f"Starting streaming request to OpenAI API: total_messages={len(api_messages)}")
+            request_timestamp = time.time()
+            stream = self.client.chat.completions.create(
+                model=used_model,
+                messages=api_messages,
+                temperature=used_temp,
+                stream=True,
+            )
+
+            logger.info("-" * 80)
+            logger.info("OpenAI API Streaming Response:")
+            
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    chunk_content = chunk.choices[0].delta.content
+                    full_response += chunk_content
+                    chunk_count += 1
+                    
+                    if first_chunk_time is None:
+                        first_chunk_time = time.time()
+                        time_to_first_token = first_chunk_time - request_timestamp
+                        logger.info(f"First token received: time_to_first_token={time_to_first_token:.2f}s")
+                    
+                    # Log every 10th chunk or if it's a significant chunk
+                    if chunk_count % 10 == 0 or len(chunk_content) > 100:
+                        logger.debug(f"Chunk {chunk_count}: length={len(chunk_content)}, total_length={len(full_response)}")
+                    
+                    yield chunk_content
+
+            # Log completion details
+            elapsed = time.time() - start_time
+            logger.info(f"Streaming completed: total_chunks={chunk_count}, response_length={len(full_response)}, total_time={elapsed:.2f}s")
+            
+            # Log full response
+            if full_response:
+                logger.info(f"Full Response ({len(full_response)} chars):")
+                logger.info(full_response)
+            logger.info("=" * 80)
+            
+        except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error("-" * 80)
+            logger.error(f"OpenAI API Streaming Error: error={str(e)}, model={used_model}, time={elapsed:.2f}s")
+            logger.error(f"Request details: num_messages={len(api_messages)}, has_context={context is not None}")
+            logger.error(f"Streaming progress: chunks_received={chunk_count}, partial_response_length={len(full_response)}")
+            if messages:
+                last_message = messages[-1]
+                user_query = last_message.get('content', '')
+                query_length = len(user_query)
+                logger.error(f"User query that failed ({query_length} chars):")
+                logger.error(user_query)
+            if context:
+                logger.error(f"Context that was used ({len(context)} chars):")
+                logger.error(context)
+            if full_response:
+                logger.error(f"Partial response received ({len(full_response)} chars):")
+                logger.error(full_response)
+            logger.error("-" * 80)
+            logger.error("Full error traceback:", exc_info=True)
+            logger.error("=" * 80)
+            raise
 
     def count_tokens(self, text: str) -> int:
         """

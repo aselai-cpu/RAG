@@ -229,9 +229,42 @@ def document_panel(rag_service):
                             d for d in st.session_state.documents if d.id != doc.id
                         ]
                         st.rerun()
+                
+                # View ChromaDB chunks for this document
+                with st.expander(f"🔍 View ChromaDB Chunks ({doc.chunk_count})", expanded=False):
+                    if hasattr(rag_service.document_repository, 'get_chunks_by_document'):
+                        chunks = rag_service.document_repository.get_chunks_by_document(doc.id, limit=20)
+                        if chunks:
+                            for chunk in chunks:
+                                st.markdown(f"**Chunk {chunk['chunk_index']}** (ID: `{chunk['chunk_id']}`)")
+                                st.text_area(
+                                    f"Content",
+                                    value=chunk['content'],
+                                    height=100,
+                                    key=f"chunk_{chunk['chunk_id']}",
+                                    label_visibility="collapsed"
+                                )
+                                # Show metadata in a collapsible format without nested expander
+                                st.markdown("**Metadata:**")
+                                st.json(chunk['metadata'])
+                                st.divider()
+                        else:
+                            st.info("No chunks found in ChromaDB for this document.")
+                
                 st.divider()
     else:
         st.info("📝 No documents uploaded yet. Upload documents to get started!")
+    
+    # ChromaDB Collection Info
+    st.divider()
+    with st.expander("🗄️ ChromaDB Collection Info", expanded=False):
+        if hasattr(rag_service.document_repository, 'get_collection_info'):
+            collection_info = rag_service.document_repository.get_collection_info()
+            st.metric("Total Chunks", collection_info.get("total_chunks", 0))
+            st.metric("Total Documents", collection_info.get("total_documents", 0))
+            st.caption(f"Collection: `{collection_info.get('collection_name', 'N/A')}`")
+            if "error" in collection_info:
+                st.error(f"Error: {collection_info['error']}")
 
 
 # Chat panel
@@ -364,6 +397,15 @@ def main():
         st.header("📊 Statistics")
         st.metric("Documents", len(st.session_state.documents))
         st.metric("Chat Messages", len(st.session_state.messages))
+        
+        # ChromaDB Collection Statistics
+        if hasattr(rag_service.document_repository, 'get_collection_info'):
+            st.divider()
+            st.header("🗄️ ChromaDB")
+            collection_info = rag_service.document_repository.get_collection_info()
+            st.metric("Total Chunks", collection_info.get("total_chunks", 0))
+            st.metric("Total Documents", collection_info.get("total_documents", 0))
+            st.caption(f"Collection: `{collection_info.get('collection_name', 'N/A')}`")
 
 
 if __name__ == "__main__":

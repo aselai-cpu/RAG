@@ -260,3 +260,78 @@ class ChromaDocumentRepository(IDocumentRepository):
             elapsed = time.time() - start_time
             logger.error(f"Error in similarity search: error={str(e)}, time={elapsed:.2f}s", exc_info=True)
             raise
+
+    def get_collection_info(self) -> dict:
+        """
+        Get information about the ChromaDB collection.
+        
+        Returns:
+            Dictionary with collection statistics
+        """
+        try:
+            count = self.collection.count()
+            
+            # Get unique document IDs efficiently
+            # Use a reasonable limit to avoid loading everything for very large collections
+            max_limit = 10000  # Reasonable limit for most use cases
+            all_metadata = self.collection.get(limit=max_limit)
+            
+            if all_metadata.get("metadatas"):
+                document_ids = set(
+                    metadata.get("document_id", "")
+                    for metadata in all_metadata["metadatas"]
+                    if metadata.get("document_id")
+                )
+                num_documents = len(document_ids)
+            else:
+                num_documents = 0
+            
+            return {
+                "total_chunks": count,
+                "total_documents": num_documents,
+                "collection_name": self.collection.name,
+            }
+        except Exception as e:
+            logger.error(f"Error getting collection info: {str(e)}", exc_info=True)
+            return {
+                "total_chunks": 0,
+                "total_documents": 0,
+                "collection_name": self.collection.name,
+                "error": str(e)
+            }
+
+    def get_chunks_by_document(self, document_id: str, limit: int = 10) -> List[dict]:
+        """
+        Get chunks for a specific document.
+        
+        Args:
+            document_id: The document ID
+            limit: Maximum number of chunks to return
+            
+        Returns:
+            List of chunk dictionaries with content and metadata
+        """
+        try:
+            results = self.collection.get(
+                where={"document_id": document_id},
+                limit=limit
+            )
+            
+            chunks = []
+            for i, (doc_id, metadata, document) in enumerate(zip(
+                results["ids"],
+                results["metadatas"],
+                results["documents"]
+            )):
+                chunks.append({
+                    "chunk_id": doc_id,
+                    "chunk_index": metadata.get("chunk_index", i),
+                    "content": document,
+                    "content_preview": document[:200] + "..." if len(document) > 200 else document,
+                    "metadata": metadata
+                })
+            
+            return sorted(chunks, key=lambda x: x["chunk_index"])
+        except Exception as e:
+            logger.error(f"Error getting chunks for document {document_id}: {str(e)}", exc_info=True)
+            return []
