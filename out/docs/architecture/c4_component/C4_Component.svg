@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="514px" preserveAspectRatio="none" style="width:837px;height:514px;" version="1.1" viewBox="0 0 837 514" width="837px" zoomAndPan="magnify"><defs><filter height="300%" id="f9zjeekogi7rc" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="351" x="236.7393" y="17.4023">Component Diagram - Application Layer</text><!--MD5=[de6cf97a447c0cb999a0ecd0089df131]
+cluster Application Layer--><rect fill="#ADD8E6" filter="url(#f9zjeekogi7rc)" height="200.97" style="stroke:#000000;stroke-width:1.5;" width="141" x="257" y="28.1992"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="125" x="265" y="43.7344">Application Layer</text><!--MD5=[cc167570a590d8dbd4742108b55f98b1]
+cluster Domain Layer--><rect fill="#90EE90" filter="url(#f9zjeekogi7rc)" height="87.49" style="stroke:#000000;stroke-width:1.5;" width="560" x="7" y="414.6592"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="99" x="237.5" y="430.1944">Domain Layer</text><!--MD5=[fc9d01843663843f76fa1b021ee06788]
+cluster Infrastructure Layer--><rect fill="#FFFFE0" filter="url(#f9zjeekogi7rc)" height="87.49" style="stroke:#000000;stroke-width:1.5;" width="583" x="237" y="278.1692"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="142" x="457.5" y="293.7044">Infrastructure Layer</text><!--MD5=[2333e32d3791facf8f2f1f9a6336fb3a]
+entity RAGService--><rect fill="#FEFECE" filter="url(#f9zjeekogi7rc)" height="36.4883" style="stroke:#000000;stroke-width:1.5;" width="101" x="276.5" y="176.6892"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="81" x="286.5" y="200.2244">RAG Service</text><!--MD5=[26fa48d1f08233d6610d7f83059819b0]
+entity ChatService--><rect fill="#FEFECE" filter="url(#f9zjeekogi7rc)" height="36.4883" style="stroke:#000000;stroke-width:1.5;" width="104" x="275" y="63.1992"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="84" x="285" y="86.7344">Chat Service</text><!--MD5=[632618860a5faf3ec7540a0a33817277]
+entity DocumentEntity--><rect fill="#FEFECE" filter="url(#f9zjeekogi7rc)" height="36.4883" style="stroke:#000000;stroke-width:1.5;" width="132" x="419" y="449.6592"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="112" x="429" y="473.1944">Document Entity</text><!--MD5=[40dc21eed778cb44e0e6a0c07252d96e]
+entity ChatEntity--><rect fill="#FEFECE" filter="url(#f9zjeekogi7rc)" height="36.4883" style="stroke:#000000;stroke-width:1.5;" width="160" x="224" y="449.6592"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="140" x="234" y="473.1944">Chat/Message Entity</text><!--MD5=[aac24cde6c6bd7ffd980068d92a9e609]
+entity DocRepoInterface--><rect fill="#FEFECE" filter="url(#f9zjeekogi7rc)" height="36.4883" style="stroke:#000000;stroke-width:1.5;" width="167" x="22.5" y="449.6592"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="147" x="32.5" y="473.1944">IDocumentRepository</text><!--MD5=[a658aadc4d80820f05691b1aef2b2e35]
+entity ChromaRepo--><rect fill="#FEFECE" filter="url(#f9zjeekogi7rc)" height="36.4883" style="stroke:#000000;stroke-width:1.5;" width="218" x="253" y="313.1692"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="198" x="263" y="336.7044">ChromaDocumentRepository</text><!--MD5=[6bafa8f172c871802da001d55354d053]
+entity OpenAIService--><rect fill="#FEFECE" filter="url(#f9zjeekogi7rc)" height="36.4883" style="stroke:#000000;stroke-width:1.5;" width="123" x="681.5" y="313.1692"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="103" x="691.5" y="336.7044">OpenAI Service</text><!--MD5=[dd19d2d31848700502175162cfd724bf]
+entity DocLoader--><rect fill="#FEFECE" filter="url(#f9zjeekogi7rc)" height="36.4883" style="stroke:#000000;stroke-width:1.5;" width="141" x="505.5" y="313.1692"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="121" x="515.5" y="336.7044">Document Loader</text><!--MD5=[73609b343a0746e1ff78a56c374e4dae]
+entity ChromaDB--><path d="M586.5,455.1592 C586.5,445.1592 633,445.1592 633,445.1592 C633,445.1592 679.5,445.1592 679.5,455.1592 L679.5,480.6475 C679.5,490.6475 633,490.6475 633,490.6475 C633,490.6475 586.5,490.6475 586.5,480.6475 L586.5,455.1592 " fill="#F08080" filter="url(#f9zjeekogi7rc)" style="stroke:#000000;stroke-width:1.5;"/><path d="M586.5,455.1592 C586.5,465.1592 633,465.1592 633,465.1592 C633,465.1592 679.5,465.1592 679.5,455.1592 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="73" x="596.5" y="482.6944">ChromaDB</text><!--MD5=[291d93c21ef374df4e49291b0af017f0]
+entity OpenAI_API--><path d="M724.5887,454.7248 C726.7795,449.7865 730.8649,448.4507 735.0236,452.4193 C738.7123,444.7235 744.0463,444.4557 748.6498,451.5781 C752.2333,446.4845 756.3537,446.3263 759.9239,451.5927 C763.2635,445.9711 767.9325,445.4465 772.0309,450.752 C776.3322,445.9497 779.9251,446.8075 783.0721,452.0241 C786.1863,446.4679 790.1536,446.1748 793.9411,451.3417 C798.8539,446.1642 803.6476,447.4526 806.5731,453.5653 C810.3616,447.6447 815.2383,447.0648 819.1889,453.3985 C827.235,455.3663 829.8,461.2969 825.1872,468.345 C830.4785,476.3486 827.4756,484.7652 817.0628,485.1983 C813.8808,490.9152 809.9515,491.1407 806.1773,485.7803 C803.8042,491.8695 798.5342,493.6678 794.0485,487.9507 C792.3043,493.1573 787.5039,494.3806 783.7947,490.0672 C780.9645,497.2026 774.3298,498.2746 770.0286,491.5257 C765.4278,495.4843 760.1708,495.026 758.9523,488.0877 C754.9869,493.3372 750.8793,493.751 746.7236,488.3054 C742.2443,492.5011 738.3647,493.0972 735.3794,486.7047 C731.5486,491.1867 727.5683,491.3191 725.1748,485.3072 C715.5595,482.2405 716.428,474.262 722.7313,468.834 C716.581,463.7286 717.7808,458.1243 724.5887,454.7248 " fill="#D3D3D3" filter="url(#f9zjeekogi7rc)" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="80" x="730" y="473.1944">OpenAI_API</text><!--MD5=[e38cd8c49a3480488516f27901177cec]
+link RAGService to DocRepoInterface--><path d="M286.58,213.6192 C260.98,226.4092 228.57,245.7192 206,270.1692 C157.41,322.8192 126.45,403.5192 113.29,443.2092 " fill="none" id="RAGService-to-DocRepoInterface" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="111.8,447.7692,118.3879,440.4481,113.3467,443.0145,110.7803,437.9733,111.8,447.7692" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="29" x="207" y="336.4876">uses</text><!--MD5=[2bbc3b442e54110b7138a9469b3a4693]
+link RAGService to OpenAIService--><path d="M377.72,200.2192 C445.63,207.4592 568.61,225.9392 664,270.1692 C684.67,279.7592 705.04,295.4892 719.91,308.4692 " fill="none" id="RAGService-to-OpenAIService" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="723.61,311.7492,719.5238,302.788,719.8667,308.4345,714.2202,308.7774,723.61,311.7492" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="29" x="639.38" y="258.7376">uses</text><!--MD5=[e8fe59e6eede82fa6d3bde2a7b5dd37f]
+link ChatService to RAGService--><path d="M327,99.8592 C327,118.6492 327,148.6992 327,169.7592 " fill="none" id="ChatService-to-RAGService" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="327,174.7492,331,165.7492,327,169.7492,323,165.7492,327,174.7492" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="29" x="328" y="143.2576">uses</text><!--MD5=[c5f2516f039eba0bea5de77e52f64314]
+link ChromaRepo to DocRepoInterface--><path d="M322.65,350.0592 C291.02,364.5292 245.65,385.9292 207,406.6592 C188.8,416.4192 169.21,427.8792 152.17,438.1692 " fill="none" id="ChromaRepo-to-DocRepoInterface" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="none" points="155.91,444.0792,135.19,448.5392,148.61,432.1392,155.91,444.0792" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="74" x="254.23" y="395.2276">implements</text><!--MD5=[45015de1aad6d23c545458ebd38411d7]
+link ChromaRepo to ChromaDB--><path d="M373.53,350.0892 C384.98,365.9492 404.11,388.2792 427,398.6592 C455.38,411.5392 538.28,394.5692 567,406.6592 C584.19,413.8992 599.79,427.6292 611.51,440.1492 " fill="none" id="ChromaRepo-to-ChromaDB" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="614.62,443.5792,611.5149,434.2326,611.2524,439.8834,605.6016,439.6208,614.62,443.5792" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="100" x="428" y="395.2276">stores/retrieves</text><!--MD5=[b20ec2a15a253559eff52bd8eb57bf73]
+link OpenAIService to OpenAI_API--><path d="M746.53,349.9992 C751.03,372.4092 758.87,411.4492 764.24,438.1992 " fill="none" id="OpenAIService-to-OpenAI_API" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="765.18,442.8992,767.3534,433.2932,764.2077,437.9947,759.5062,434.8489,765.18,442.8992" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="29" x="756.69" y="395.2276">calls</text><!--MD5=[79cfabbd05bb3f14b73ad7790471b10d]
+link DocLoader to DocumentEntity--><path d="M566.45,349.9192 C558.87,363.4792 547.79,382.5992 537,398.6592 C526.44,414.3792 513.54,431.3192 503.24,444.3792 " fill="none" id="DocLoader-to-DocumentEntity" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="500.22,448.1892,508.9536,443.6368,503.333,444.2765,502.6933,438.656,500.22,448.1892" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="45" x="548.25" y="395.2276">creates</text><!--MD5=[4bbebdf861fba4ae1e122a436cba53ff]
+@startuml C4_Component
+' Using basic PlantUML syntax for compatibility with older versions
+' If you need C4 styling, update PlantUML to version 1.2021.6 or later
+
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+title Component Diagram - Application Layer
+
+package "Application Layer" #LightBlue {
+  component [RAG Service] as RAGService
+  component [Chat Service] as ChatService
+}
+
+package "Domain Layer" #LightGreen {
+  component [Document Entity] as DocumentEntity
+  component [Chat/Message Entity] as ChatEntity
+  interface [IDocumentRepository] as DocRepoInterface
+}
+
+package "Infrastructure Layer" #LightYellow {
+  component [ChromaDocumentRepository] as ChromaRepo
+  component [OpenAI Service] as OpenAIService
+  component [Document Loader] as DocLoader
+}
+
+database ChromaDB #LightCoral
+cloud OpenAI_API #LightGray
+
+RAGService - -> DocRepoInterface : uses
+RAGService - -> OpenAIService : uses
+ChatService - -> RAGService : uses
+ChromaRepo ..|> DocRepoInterface : implements
+ChromaRepo - -> ChromaDB : stores/retrieves
+OpenAIService - -> OpenAI_API : calls
+DocLoader - -> DocumentEntity : creates
+
+@enduml
+
+@startuml C4_Component
+
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+title Component Diagram - Application Layer
+
+package "Application Layer" #LightBlue {
+  component [RAG Service] as RAGService
+  component [Chat Service] as ChatService
+}
+
+package "Domain Layer" #LightGreen {
+  component [Document Entity] as DocumentEntity
+  component [Chat/Message Entity] as ChatEntity
+  interface [IDocumentRepository] as DocRepoInterface
+}
+
+package "Infrastructure Layer" #LightYellow {
+  component [ChromaDocumentRepository] as ChromaRepo
+  component [OpenAI Service] as OpenAIService
+  component [Document Loader] as DocLoader
+}
+
+database ChromaDB #LightCoral
+cloud OpenAI_API #LightGray
+
+RAGService - -> DocRepoInterface : uses
+RAGService - -> OpenAIService : uses
+ChatService - -> RAGService : uses
+ChromaRepo ..|> DocRepoInterface : implements
+ChromaRepo - -> ChromaDB : stores/retrieves
+OpenAIService - -> OpenAI_API : calls
+DocLoader - -> DocumentEntity : creates
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 18:25:05 SGT 2021)
+(MIT source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: SG
+--></g></svg>
