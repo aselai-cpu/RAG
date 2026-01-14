@@ -4,6 +4,7 @@ langchain-community==0.3.14
 langchain-openai==0.2.14
 
 # Vector Database
+# Note: Requires Python 3.12 or 3.13 (onnxruntime not available for Python 3.14 yet)
 chromadb==0.5.23
 
 # OpenAI

@@ -1,8 +1,6 @@
 @startuml C4_Component
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-LAYOUT_WITH_LEGEND()
-
 title Component Diagram - Application Layer
 
 Container_Boundary(app_layer, "Application Layer") {

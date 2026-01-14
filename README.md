@@ -38,7 +38,7 @@ src/
 
 ### Prerequisites
 
-- Python 3.9+
+- **Python 3.12 or 3.13** (required - Python 3.14 is not yet supported due to onnxruntime dependency)
 - OpenAI API key
 
 ### Installation
@@ -46,12 +46,17 @@ src/
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd 102-Claude-AskToCreateRAG
+cd RAG
 ```
 
-2. Create virtual environment:
+2. Create virtual environment with Python 3.12 or 3.13:
 ```bash
-python -m venv venv
+# Using Python 3.12 (recommended)
+python3.12 -m venv venv
+# OR using Python 3.13
+python3.13 -m venv venv
+
+# Activate virtual environment
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
@@ -59,6 +64,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```bash
 pip install -r requirements.txt
 ```
+
+**Note**: If you're using Python 3.14, you'll need to use Python 3.12 or 3.13 instead, as `onnxruntime` (required by `chromadb`) doesn't have wheels for Python 3.14 yet.
 
 4. Set up environment variables:
 ```bash
@@ -68,11 +75,24 @@ cp .env.example .env
 
 ### Running the Application
 
+**Option 1: Using the startup script (Recommended)**
 ```bash
+./start_app.sh
+```
+
+**Option 2: Manual start**
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Set PYTHONPATH and run
+export PYTHONPATH="${PWD}:${PYTHONPATH}"
 streamlit run src/presentation/ui/app.py
 ```
 
 The application will open in your browser at `http://localhost:8501`
+
+**Note**: Make sure you have a `.env` file with your `OPENAI_API_KEY` set, or export it as an environment variable.
 
 ## 📖 Usage
 

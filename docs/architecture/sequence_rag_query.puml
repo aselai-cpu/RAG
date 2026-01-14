@@ -1,4 +1,4 @@
-@startuml RAG Query Sequence
+@startuml
 
 title RAG Query Flow (Retrieval-Augmented Generation)
 
@@ -25,10 +25,10 @@ activate RAG
 
 == Retrieval Phase ==
 
-RAG -> Repo: search_similar(query, top_k=5)
+RAG -> Repo: search_similar(query, top_k:5)
 activate Repo
 
-Repo -> Chroma: query(query_texts, n_results=5)
+Repo -> Chroma: query(query_texts, n_results:5)
 activate Chroma
 Chroma -> Chroma: Compute embeddings
 Chroma -> Chroma: Search similar vectors
@@ -37,10 +37,10 @@ deactivate Chroma
 
 Repo -> Repo: Convert distances to similarities
 Repo -> Repo: Create partial Documents
-Repo --> RAG: List[(Document, similarity)]
+Repo --> RAG: List of (Document, similarity)
 deactivate Repo
 
-RAG -> RAG: Filter by threshold (> 0.5)
+RAG -> RAG: Filter by threshold (greater than 0.5)
 RAG -> RAG: Build context from chunks
 
 == Generation Phase ==
@@ -49,7 +49,7 @@ RAG -> RAG: Prepare messages with context
 RAG -> OpenAI: generate_response_stream(messages, context)
 activate OpenAI
 
-OpenAI -> API: Create chat completion (stream=True)
+OpenAI -> API: Create chat completion (stream:True)
 activate API
 
 loop Stream chunks
