@@ -289,8 +289,27 @@ def chat_panel(chat_service):
                 st.markdown(content)
                 if sources and role == "assistant":
                     with st.expander("📎 Sources"):
-                        for source_id in sources:
-                            st.caption(f"• Document ID: {source_id}")
+                        # Handle both old format (list of IDs) and new format (list of dicts)
+                        for source in sources:
+                            if isinstance(source, dict):
+                                # New format with detailed information
+                                doc_id = source.get("document_id", "Unknown")
+                                chunk_index = source.get("chunk_index", "?")
+                                relevance = source.get("relevance_score", 0)
+                                file_name = source.get("file_name", "")
+                                
+                                # Format relevance as percentage
+                                relevance_pct = f"{relevance * 100:.1f}%"
+                                
+                                # Display with file name if available
+                                if file_name:
+                                    st.caption(f"• **{file_name}** - Chunk {chunk_index} (Relevance: {relevance_pct})")
+                                    st.caption(f"  Document ID: `{doc_id}`")
+                                else:
+                                    st.caption(f"• Document ID: `{doc_id}` - Chunk {chunk_index} (Relevance: {relevance_pct})")
+                            else:
+                                # Old format - just document ID (backward compatibility)
+                                st.caption(f"• Document ID: {source}")
 
     # Chat input
     if prompt := st.chat_input("Ask a question about your documents..."):
@@ -327,8 +346,27 @@ def chat_panel(chat_service):
                         # Display sources
                         if sources:
                             with st.expander("📎 Sources"):
-                                for source_id in sources:
-                                    st.caption(f"• Document ID: {source_id}")
+                                # Handle both old format (list of IDs) and new format (list of dicts)
+                                for source in sources:
+                                    if isinstance(source, dict):
+                                        # New format with detailed information
+                                        doc_id = source.get("document_id", "Unknown")
+                                        chunk_index = source.get("chunk_index", "?")
+                                        relevance = source.get("relevance_score", 0)
+                                        file_name = source.get("file_name", "")
+                                        
+                                        # Format relevance as percentage
+                                        relevance_pct = f"{relevance * 100:.1f}%"
+                                        
+                                        # Display with file name if available
+                                        if file_name:
+                                            st.caption(f"• **{file_name}** - Chunk {chunk_index} (Relevance: {relevance_pct})")
+                                            st.caption(f"  Document ID: `{doc_id}`")
+                                        else:
+                                            st.caption(f"• Document ID: `{doc_id}` - Chunk {chunk_index} (Relevance: {relevance_pct})")
+                                    else:
+                                        # Old format - just document ID (backward compatibility)
+                                        st.caption(f"• Document ID: {source}")
                     else:
                         # This is a text chunk
                         full_response += chunk

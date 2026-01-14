@@ -75,13 +75,13 @@ class ChatService:
         history = self.current_session.get_history()[:-1]
 
         # Query RAG service
-        response_text, source_ids = self.rag_service.query(
+        response_text, source_ids, sources = self.rag_service.query(
             question=content, chat_history=history
         )
 
         # Create and add assistant message
         assistant_message = Message(
-            role="assistant", content=response_text, sources=source_ids
+            role="assistant", content=response_text, sources=sources
         )
         self.current_session.add_message(assistant_message)
 
@@ -113,18 +113,21 @@ class ChatService:
         # Stream response from RAG service
         full_response = ""
         source_ids = []
+        source_details = []
 
-        for chunk, sources in self.rag_service.query_stream(
+        for chunk, ids, sources in self.rag_service.query_stream(
             question=content, chat_history=history
         ):
             full_response += chunk
-            if sources:  # Sources come with first chunk
-                source_ids = sources
+            if ids:  # Source IDs come with first chunk
+                source_ids = ids
+            if sources:  # Source details come with first chunk
+                source_details = sources
             yield chunk
 
         # Create and add assistant message
         assistant_message = Message(
-            role="assistant", content=full_response, sources=source_ids
+            role="assistant", content=full_response, sources=source_details
         )
         self.current_session.add_message(assistant_message)
 

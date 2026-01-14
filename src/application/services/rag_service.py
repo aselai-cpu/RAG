@@ -27,7 +27,7 @@ class RAGService:
         document_repository: IDocumentRepository,
         llm_service: OpenAIService,
         top_k_retrieval: int = 5,
-        similarity_threshold: float = 0.5,
+        similarity_threshold: float = 0.4,
     ):
         """
         Initialize the RAG service.
@@ -47,7 +47,7 @@ class RAGService:
         self,
         question: str,
         chat_history: Optional[List[Message]] = None,
-    ) -> Tuple[str, List[str]]:
+    ) -> Tuple[str, List[str], List[dict]]:
         """
         Process a RAG query.
 
@@ -55,14 +55,15 @@ class RAGService:
         1. Retrieve relevant documents
         2. Build context from retrieved documents
         3. Generate response with context
-        4. Return response and source document IDs
+        4. Return response, source document IDs, and detailed source information
 
         Args:
             question: The user's question
             chat_history: Optional chat history for context
 
         Returns:
-            Tuple of (response_text, list_of_source_document_ids)
+            Tuple of (response_text, list_of_source_document_ids, list_of_source_details)
+            Source details include: document_id, chunk_index, relevance_score, file_name
         """
         # Step 1: Retrieve relevant documents
         retrieved_docs = self.document_repository.search_similar(
@@ -96,10 +97,21 @@ class RAGService:
             messages=messages, context=context if relevant_docs else None
         )
 
-        # Extract source document IDs
+        # Extract source information with chunk details
+        sources = []
+        for doc, score in relevant_docs:
+            chunk_index = doc.metadata.get("chunk_index", 0)
+            sources.append({
+                "document_id": doc.id,
+                "chunk_index": chunk_index,
+                "relevance_score": score,
+                "file_name": doc.file_name
+            })
+        
+        # Also return unique document IDs for backward compatibility
         source_ids = list(set(doc.id for doc, _ in relevant_docs))
 
-        return response, source_ids
+        return response, source_ids, sources
 
     def query_stream(
         self,
@@ -116,8 +128,9 @@ class RAGService:
             chat_history: Optional chat history for context
 
         Yields:
-            Tuples of (response_chunk, source_ids)
-            The source_ids will be sent with the first chunk
+            Tuples of (response_chunk, source_ids, source_details)
+            The source_ids and source_details will be sent with the first chunk
+            Source details include: document_id, chunk_index, relevance_score, file_name
         """
         # Retrieve relevant documents
         retrieved_docs = self.document_repository.search_similar(
@@ -143,7 +156,18 @@ class RAGService:
 
         messages.append({"role": "user", "content": question})
 
-        # Extract source document IDs
+        # Extract source information with chunk details
+        sources = []
+        for doc, score in relevant_docs:
+            chunk_index = doc.metadata.get("chunk_index", 0)
+            sources.append({
+                "document_id": doc.id,
+                "chunk_index": chunk_index,
+                "relevance_score": score,
+                "file_name": doc.file_name
+            })
+        
+        # Also return unique document IDs for backward compatibility
         source_ids = list(set(doc.id for doc, _ in relevant_docs))
 
         # Generate streaming response
@@ -152,10 +176,10 @@ class RAGService:
             messages=messages, context=context if relevant_docs else None
         ):
             if first_chunk:
-                yield chunk, source_ids
+                yield chunk, source_ids, sources
                 first_chunk = False
             else:
-                yield chunk, []
+                yield chunk, [], []
 
     def _build_context(
         self, relevant_docs: List[Tuple[Document, float]]

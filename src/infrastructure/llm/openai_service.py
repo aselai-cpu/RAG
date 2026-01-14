@@ -84,26 +84,39 @@ class OpenAIService:
                 logger.debug(f"Adding context to system message: context_length={context_length} chars")
                 system_message = {
                     "role": "system",
-                    "content": f"""You are a helpful AI assistant that answers questions based on the provided context.
-Use the following context to answer the user's question. If the answer cannot be found in the context, say so clearly.
+                    "content": f"""You are a RAG (Retrieval-Augmented Generation) assistant. Your role is to answer questions STRICTLY based on the provided context from the knowledge base.
 
-Context:
+CRITICAL RULES:
+1. ONLY use information from the provided context below to answer questions
+2. DO NOT use any external knowledge or general information
+3. If the answer cannot be found in the context, explicitly state: "I cannot answer this question based on the provided documents. The information is not available in the knowledge base."
+4. If the context is partially relevant, only answer the parts that are covered by the context
+5. Cite which source/document the information comes from when possible
+
+Context from Knowledge Base:
 {context}
-""",
+
+Remember: You are a RAG system. Your answers must be grounded in the provided context only.""",
                 }
                 api_messages.append(system_message)
                 logger.debug("System message with context added:")
                 logger.debug(f"Full Context ({context_length} chars):")
                 logger.debug(context)
             else:
-                # Default system message
+                # No context available - tell the AI it cannot answer
                 api_messages.append(
                     {
                         "role": "system",
-                        "content": "You are a helpful AI assistant that provides accurate and informative responses.",
+                        "content": """You are a RAG (Retrieval-Augmented Generation) assistant. Your role is to answer questions based on documents in the knowledge base.
+
+IMPORTANT: No relevant documents were found in the knowledge base for this query.
+
+You MUST respond with: "I cannot answer this question because no relevant information was found in the knowledge base. Please try rephrasing your question or ensure that relevant documents have been uploaded to the system."
+
+DO NOT attempt to answer the question using general knowledge. You are a RAG system and can only answer based on the knowledge base.""",
                     }
                 )
-                logger.debug("Default system message added (no context)")
+                logger.debug("System message added (no context - RAG restriction enforced)")
 
             # Add conversation messages
             api_messages.extend(messages)
@@ -222,25 +235,39 @@ Context:
             logger.debug(f"Adding context to system message: context_length={context_length} chars")
             system_message = {
                 "role": "system",
-                "content": f"""You are a helpful AI assistant that answers questions based on the provided context.
-Use the following context to answer the user's question. If the answer cannot be found in the context, say so clearly.
+                "content": f"""You are a RAG (Retrieval-Augmented Generation) assistant. Your role is to answer questions STRICTLY based on the provided context from the knowledge base.
 
-Context:
+CRITICAL RULES:
+1. ONLY use information from the provided context below to answer questions
+2. DO NOT use any external knowledge or general information
+3. If the answer cannot be found in the context, explicitly state: "I cannot answer this question based on the provided documents. The information is not available in the knowledge base."
+4. If the context is partially relevant, only answer the parts that are covered by the context
+5. Cite which source/document the information comes from when possible
+
+Context from Knowledge Base:
 {context}
-""",
+
+Remember: You are a RAG system. Your answers must be grounded in the provided context only.""",
             }
             api_messages.append(system_message)
             logger.debug("System message with context added:")
             logger.debug(f"Full Context ({context_length} chars):")
             logger.debug(context)
         else:
+            # No context available - tell the AI it cannot answer
             api_messages.append(
                 {
                     "role": "system",
-                    "content": "You are a helpful AI assistant that provides accurate and informative responses.",
+                    "content": """You are a RAG (Retrieval-Augmented Generation) assistant. Your role is to answer questions based on documents in the knowledge base.
+
+IMPORTANT: No relevant documents were found in the knowledge base for this query.
+
+You MUST respond with: "I cannot answer this question because no relevant information was found in the knowledge base. Please try rephrasing your question or ensure that relevant documents have been uploaded to the system."
+
+DO NOT attempt to answer the question using general knowledge. You are a RAG system and can only answer based on the knowledge base.""",
                 }
             )
-            logger.debug("Default system message added (no context)")
+            logger.debug("System message added (no context - RAG restriction enforced)")
 
         api_messages.extend(messages)
 
