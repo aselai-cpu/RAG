@@ -26,7 +26,7 @@ class OpenAIService:
         self,
         api_key: Optional[str] = None,
         model: str = "gpt-4-turbo-preview",
-        temperature: float = 0.7,
+        temperature: float = 0
     ):
         """
         Initialize the OpenAI service.
@@ -103,20 +103,32 @@ Remember: You are a RAG system. Your answers must be grounded in the provided co
                 logger.debug(f"Full Context ({context_length} chars):")
                 logger.debug(context)
             else:
-                # No context available - tell the AI it cannot answer
-                api_messages.append(
-                    {
-                        "role": "system",
-                        "content": """You are a RAG (Retrieval-Augmented Generation) assistant. Your role is to answer questions based on documents in the knowledge base.
+                # No context available - check if this is entity extraction
+                is_entity_extraction = (
+                    len(messages) > 0 and 
+                    isinstance(messages[0], dict) and
+                    ("Analyze the following text and extract" in messages[0].get("content", "") or
+                     "Extract key entities" in messages[0].get("content", ""))
+                )
+                
+                if is_entity_extraction:
+                    # For entity extraction, don't add RAG restrictions
+                    logger.debug("Entity extraction detected - skipping RAG restrictions")
+                else:
+                    # For regular RAG queries without context, enforce restrictions
+                    api_messages.append(
+                        {
+                            "role": "system",
+                            "content": """You are a RAG (Retrieval-Augmented Generation) assistant. Your role is to answer questions based on documents in the knowledge base.
 
 IMPORTANT: No relevant documents were found in the knowledge base for this query.
 
 You MUST respond with: "I cannot answer this question because no relevant information was found in the knowledge base. Please try rephrasing your question or ensure that relevant documents have been uploaded to the system."
 
 DO NOT attempt to answer the question using general knowledge. You are a RAG system and can only answer based on the knowledge base.""",
-                    }
-                )
-                logger.debug("System message added (no context - RAG restriction enforced)")
+                        }
+                    )
+                    logger.debug("System message added (no context - RAG restriction enforced)")
 
             # Add conversation messages
             api_messages.extend(messages)
@@ -254,20 +266,30 @@ Remember: You are a RAG system. Your answers must be grounded in the provided co
             logger.debug(f"Full Context ({context_length} chars):")
             logger.debug(context)
         else:
-            # No context available - tell the AI it cannot answer
-            api_messages.append(
-                {
-                    "role": "system",
-                    "content": """You are a RAG (Retrieval-Augmented Generation) assistant. Your role is to answer questions based on documents in the knowledge base.
-
-IMPORTANT: No relevant documents were found in the knowledge base for this query.
+            # No context available - check if this is entity extraction
+            is_entity_extraction = (
+                len(messages) > 0 and 
+                isinstance(messages[0], dict) and
+                ("Analyze the following text and extract" in messages[0].get("content", "") or
+                 "Extract key entities" in messages[0].get("content", ""))
+            )
+            
+            if is_entity_extraction:
+                # For entity extraction, don't add RAG restrictions
+                logger.debug("Entity extraction detected in stream - skipping RAG restrictions")
+            else:
+                # For regular RAG queries without context, enforce restrictions
+                api_messages.append(
+                    {
+                        "role": "system",
+                        "content": """You are a RAG (Retrieval-Augmented Generation) assistant. Your role is to answer questions based on documents in the knowledge base. IMPORTANT: No relevant documents were found in the knowledge base for this query.
 
 You MUST respond with: "I cannot answer this question because no relevant information was found in the knowledge base. Please try rephrasing your question or ensure that relevant documents have been uploaded to the system."
 
 DO NOT attempt to answer the question using general knowledge. You are a RAG system and can only answer based on the knowledge base.""",
-                }
-            )
-            logger.debug("System message added (no context - RAG restriction enforced)")
+                    }
+                )
+                logger.debug("System message added (no context - RAG restriction enforced)")
 
         api_messages.extend(messages)
 

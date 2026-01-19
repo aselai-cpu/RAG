@@ -10,8 +10,11 @@ Fill the jagged intelligence gap provided by LLMs for technical utility through 
 
 - **Multi-format Document Support**: PDF, text files, and direct text input
 - **Intelligent Retrieval**: ChromaDB-powered semantic search with relevance scoring
+- **Graph RAG**: Neo4j-powered graph traversal for enriched context retrieval
+- **Hybrid Retrieval**: Combines vector search with graph relationships
+- **Dynamic Entity Extraction**: Automatically builds ontology from document content
 - **Conversational Interface**: WhatsApp-style chat with history
-- **Source Attribution**: Track which documents informed each response
+- **Source Attribution**: Track which documents informed each response (vector vs graph sources)
 - **Domain-Driven Design**: Clean architecture with separation of concerns
 - **Streamlit UI**: Intuitive two-panel interface
 
@@ -40,6 +43,7 @@ src/
 
 - **Python 3.12 or 3.13** (required - Python 3.14 is not yet supported due to onnxruntime dependency)
 - OpenAI API key
+- Docker (optional, for Graph RAG with Neo4j)
 
 ### Installation
 
@@ -94,6 +98,25 @@ The application will open in your browser at `http://localhost:8501`
 
 **Note**: Make sure you have a `.env` file with your `OPENAI_API_KEY` set, or export it as an environment variable.
 
+### Enabling Graph RAG (Optional)
+
+For enhanced retrieval with graph-based context enrichment:
+
+1. **Start Neo4j**:
+```bash
+./start_neo4j.sh
+# OR
+docker-compose up -d
+```
+
+2. **Access Neo4j Browser** (optional):
+   - Visit http://localhost:7474
+   - Default credentials: `neo4j` / `password`
+
+The application will automatically detect Neo4j and enable Graph RAG. If Neo4j is unavailable, it will fall back to vector-only retrieval.
+
+See [GRAPH_RAG_SETUP.md](GRAPH_RAG_SETUP.md) for detailed Graph RAG documentation.
+
 ## 📖 Usage
 
 1. **Upload Documents**:
@@ -112,7 +135,9 @@ The application will open in your browser at `http://localhost:8501`
 
 ## 🧪 RAG Workflow
 
-This application implements the classic RAG pattern:
+This application implements both classic and Graph RAG patterns:
+
+### Classic RAG (Vector-Only)
 
 1. **Document Ingestion**:
    - Documents are split into chunks (1000 chars with 200 char overlap)
@@ -121,29 +146,53 @@ This application implements the classic RAG pattern:
 2. **Query Processing**:
    - User query is embedded
    - Top-K similar chunks are retrieved (K=5)
-   - Chunks with similarity > 0.5 are used
+   - Chunks with similarity > 0.4 are used
 
 3. **Response Generation**:
    - Retrieved context is injected into the system prompt
    - Chat history (last 5 messages) provides conversation context
    - OpenAI generates a contextually-aware response
 
+### Graph RAG (Hybrid - When Neo4j is Available)
+
+1. **Document Ingestion**:
+   - Same as classic RAG (chunks stored in ChromaDB)
+   - **Additionally**: Entities are extracted from each chunk using LLM
+   - **Additionally**: Relationships between entities are identified
+   - **Additionally**: Graph structure is built in Neo4j (Document → Chunk → Entity)
+
+2. **Query Processing**:
+   - **Step 1**: Vector search finds similar chunks (same as classic RAG)
+   - **Step 2**: Entities are extracted from query and retrieved chunks
+   - **Step 3**: Graph traversal finds related chunks through:
+     - Chunks mentioning the same entities
+     - Chunks connected via entity relationships
+     - Chunks that co-occur with retrieved chunks
+   - **Step 4**: Vector and graph results are combined and deduplicated
+
+3. **Response Generation**:
+   - Enriched context (vector + graph) is sent to LLM
+   - Sources are labeled as "vector" or "graph" for transparency
+
 ## 📚 Documentation
 
-Comprehensive documentation is available in the `docs/` directory:
+Comprehensive documentation is available:
 
-- **Novice Guide**: Concepts explained from basics
-- **Professional Guide**: Technical implementation details
-- **Philosophical Foundation**: Design decisions and their rationale
-- **Code Walkthrough**: Line-by-line explanation
-- **FAQ**: Common questions and answers
-- **Transcripts**: Conversational explorations of the code
+- **[Graph RAG Setup Guide](GRAPH_RAG_SETUP.md)**: Complete guide to Graph RAG setup and usage
+- **Architecture Docs** (`docs/` directory):
+  - **Novice Guide**: Concepts explained from basics
+  - **Professional Guide**: Technical implementation details
+  - **Philosophical Foundation**: Design decisions and their rationale
+  - **Code Walkthrough**: Line-by-line explanation
+  - **FAQ**: Common questions and answers
+  - **Transcripts**: Conversational explorations of the code
 
 ## 🛠️ Technology Stack
 
-- **Language**: Python 3.9+
+- **Language**: Python 3.12+
 - **LLM Framework**: LangChain
 - **Vector Database**: ChromaDB
+- **Graph Database**: Neo4j (optional, for Graph RAG)
 - **LLM Provider**: OpenAI (GPT-4)
 - **UI Framework**: Streamlit
 - **Document Processing**: PyPDF2

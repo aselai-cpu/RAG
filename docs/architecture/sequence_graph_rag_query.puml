@@ -1,0 +1,221 @@
+@startuml
+
+title Graph RAG Query Flow - Hybrid Context Building (Vector DB + Graph DB)
+
+actor User
+participant "Streamlit UI" as UI
+participant "Chat Service" as Chat
+participant "RAG Service" as RAG
+participant "Hybrid Retrieval Service" as Hybrid
+participant "ChromaDocumentRepository" as VectorRepo
+participant "ChromaDB\n(Vector DB)" as Chroma
+participant "Entity Extraction Service" as EntityExtract
+participant "Neo4jRepository" as GraphRepo
+participant "Neo4j\n(Graph DB)" as Neo4j
+participant "OpenAI Service" as OpenAI
+participant "OpenAI API" as API
+
+User -> UI: Enter question
+activate UI
+
+UI -> Chat: send_message_stream(question)
+activate Chat
+
+Chat -> Chat: Create user Message entity
+Chat -> Chat: Add to session
+
+Chat -> RAG: query_stream(question, history)
+activate RAG
+
+== Phase 1: Vector Search (ChromaDB) ==
+
+RAG -> Hybrid: retrieve(question)
+activate Hybrid
+
+note right of Hybrid: Step 1: Find similar chunks\nusing semantic similarity
+
+Hybrid -> VectorRepo: search_similar(query, top_k:5)
+activate VectorRepo
+
+VectorRepo -> Chroma: query(query_texts, n_results:5)
+activate Chroma
+Chroma -> Chroma: Compute embeddings
+Chroma -> Chroma: Search similar vectors
+Chroma --> VectorRepo: Chunks with distances
+deactivate Chroma
+
+VectorRepo -> VectorRepo: Convert distances to similarities
+VectorRepo -> VectorRepo: Filter by threshold (>= 0.4)
+VectorRepo --> Hybrid: List of (Document, similarity_score)
+deactivate VectorRepo
+
+note right of Hybrid: Found N relevant chunks\nfrom vector search
+
+== Phase 2: Entity Extraction ==
+
+Hybrid -> EntityExtract: extract_entities_from_query(query)
+activate EntityExtract
+EntityExtract -> OpenAI: generate_response(entity_extraction_prompt)
+activate OpenAI
+OpenAI -> API: Chat completion request
+API --> OpenAI: JSON with entities
+OpenAI --> EntityExtract: Entity list
+deactivate OpenAI
+EntityExtract --> Hybrid: Query entities
+deactivate EntityExtract
+
+== Phase 3: Graph Enrichment (Neo4j) ==
+
+note right of Hybrid: Step 2: Extract entities from\nvector chunks in graph
+
+Hybrid -> Hybrid: Get chunk IDs from vector results
+Hybrid -> GraphRepo: get_entities_for_chunks(chunk_ids)
+activate GraphRepo
+GraphRepo -> Neo4j: MATCH (c:Chunk)-[:MENTIONS]->(e:Entity)
+activate Neo4j
+Neo4j --> GraphRepo: Entities for each chunk
+deactivate Neo4j
+GraphRepo --> Hybrid: chunk_entities_map
+deactivate GraphRepo
+
+note right of Hybrid: Step 3: Find related entities\nthrough graph relationships
+
+Hybrid -> GraphRepo: get_related_entities(entity_ids, max_depth:2)
+activate GraphRepo
+GraphRepo -> Neo4j: MATCH path = (e1)-[:RELATED_TO*1..2]-(e2)
+activate Neo4j
+Neo4j --> GraphRepo: Related entities with path lengths
+deactivate Neo4j
+GraphRepo --> Hybrid: Related entities list
+deactivate GraphRepo
+
+note right of Hybrid: Step 4: Get entity relationships
+
+Hybrid -> GraphRepo: get_entity_relationships(entity_ids)
+activate GraphRepo
+GraphRepo -> Neo4j: MATCH (e1)-[r]->(e2)
+activate Neo4j
+Neo4j --> GraphRepo: Entity relationships
+deactivate Neo4j
+GraphRepo --> Hybrid: Relationships list
+deactivate GraphRepo
+
+note right of Hybrid: Step 5: Find structurally\nconnected chunks
+
+Hybrid -> GraphRepo: find_related_chunks(chunk_ids, max_depth:2)
+activate GraphRepo
+GraphRepo -> Neo4j: MATCH chunks via SHARES_ENTITY\nand entity relationships\nRETURN source_chunk_ids
+activate Neo4j
+Neo4j --> GraphRepo: Related chunks with:\n- relevance_score\n- source_chunk_ids
+deactivate Neo4j
+GraphRepo --> Hybrid: Related chunks list\n(with source_chunk_ids)
+deactivate GraphRepo
+
+note right of Hybrid: Step 6: Search chunks by\nquery entities
+
+alt Query entities found
+    Hybrid -> GraphRepo: find_entities_by_query(entity_name)
+    activate GraphRepo
+    GraphRepo -> Neo4j: MATCH entities by name
+    activate Neo4j
+    Neo4j --> GraphRepo: Matching entities
+    deactivate Neo4j
+    GraphRepo --> Hybrid: Entity IDs
+    deactivate GraphRepo
+    
+    Hybrid -> GraphRepo: get_chunks_by_entities(entity_ids)
+    activate GraphRepo
+    GraphRepo -> Neo4j: MATCH chunks mentioning entities
+    activate Neo4j
+    Neo4j --> GraphRepo: Chunks with entity mentions
+    deactivate Neo4j
+    GraphRepo --> Hybrid: Entity-based chunks
+    deactivate GraphRepo
+end
+
+== Phase 4: Combine Results ==
+
+note right of Hybrid: Step 7: Create vector score mapping
+
+Hybrid -> Hybrid: Create vector_chunk_score_map:\nchunk_id -> similarity_score
+
+note right of Hybrid: Step 8: Combine vector + graph results
+
+Hybrid -> Hybrid: Add vector chunks first\n(mark as source_type="vector")
+
+loop For each graph chunk
+    Hybrid -> Hybrid: Get source_chunk_ids\nfrom graph chunk
+    Hybrid -> Hybrid: Find max_source_score\nfrom vector_chunk_score_map
+    alt No source chunks found
+        Hybrid -> Hybrid: Use average vector score\nas fallback
+    end
+    Hybrid -> Hybrid: Normalize graph_relevance\n(0.1-0.5 range)
+    Hybrid -> Hybrid: Calculate final_graph_score:\ngraph_relevance × max_source_score
+    Hybrid -> Hybrid: Cap at 90% of source score\n(final ≤ source × 0.9)
+end
+
+Hybrid -> Hybrid: Deduplicate by chunk_id
+Hybrid -> Hybrid: Sort by relevance score\n(vector chunks first)
+
+Hybrid -> VectorRepo: Get full chunk content from ChromaDB
+activate VectorRepo
+VectorRepo -> Chroma: get(ids=[chunk_ids])
+activate Chroma
+Chroma --> VectorRepo: Full chunk content
+deactivate Chroma
+VectorRepo --> Hybrid: Complete chunk documents
+deactivate VectorRepo
+
+note right of Hybrid: Step 9: Build graph context
+
+Hybrid -> Hybrid: Build graph_context dictionary:\n- entities\n- relationships\n- chunk_entities
+
+Hybrid --> RAG: (combined_chunks, sources, graph_context)
+deactivate Hybrid
+
+== Phase 5: Context Building ==
+
+RAG -> RAG: _build_context(chunks, graph_context)
+activate RAG
+
+note right of RAG: Build enriched context:\n1. Vector chunks (from ChromaDB)\n   - Primary sources (higher relevance)\n2. Graph chunks (from Neo4j)\n   - Enrichment sources (lower relevance)\n   - Relevance = graph_relevance × source_score\n3. Entities mentioned in chunks\n4. Related entities\n5. Entity relationships
+
+RAG -> RAG: Format context with sections:\n- Relevant Document Chunks (Vector 📊)\n- Related Chunks (Graph 🕸️)\n- Entities Mentioned\n- Related Entities\n- Entity Relationships
+
+RAG --> RAG: Complete context string
+deactivate RAG
+
+== Phase 6: Generation ==
+
+RAG -> RAG: Prepare messages with enriched context
+RAG -> OpenAI: generate_response_stream(messages, context)
+activate OpenAI
+
+OpenAI -> API: Create chat completion (stream:True)
+activate API
+
+loop Stream chunks
+    API --> OpenAI: Response chunk
+    OpenAI --> RAG: Text chunk
+    RAG --> Chat: Text chunk
+    Chat --> UI: Display chunk
+    UI --> User: Show streaming text
+end
+
+deactivate API
+deactivate OpenAI
+
+== Finalization ==
+
+RAG --> Chat: Source document IDs + graph sources
+deactivate RAG
+
+Chat -> Chat: Create assistant Message
+Chat -> Chat: Add to session
+Chat --> UI: Complete message with sources
+deactivate Chat
+
+UI --> User: Show response with sources\n(Vector 📊 and Graph 🕸️)
+deactivate UI
+
+@enduml

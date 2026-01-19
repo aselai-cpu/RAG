@@ -13,9 +13,12 @@ from pathlib import Path
 # Import our application services
 from src.application.services.rag_service import RAGService
 from src.application.services.chat_service import ChatService
+from src.application.services.hybrid_retrieval_service import HybridRetrievalService
+from src.application.services.entity_extraction_service import EntityExtractionService
 from src.infrastructure.vector_store.chroma_document_repository import (
     ChromaDocumentRepository,
 )
+from src.infrastructure.graph_store.neo4j_repository import Neo4jRepository
 from src.infrastructure.llm.openai_service import OpenAIService
 from src.infrastructure.document_loaders.document_loader import (
     DocumentLoader,
@@ -86,13 +89,34 @@ def initialize_services():
     document_repo = ChromaDocumentRepository(
         collection_name="rag_documents",
         persist_directory="./data/chroma",
+        chunk_size=6000,
+        chunk_overlap=600,
     )
     llm_service = OpenAIService(api_key=api_key)
+
+    # Initialize Graph RAG services (optional - will fall back to vector-only if Neo4j unavailable)
+    hybrid_retrieval_service = None
+    try:
+        neo4j_repo = Neo4jRepository()
+        entity_extraction_service = EntityExtractionService(llm_service=llm_service)
+        hybrid_retrieval_service = HybridRetrievalService(
+            document_repository=document_repo,
+            neo4j_repository=neo4j_repo,
+            entity_extraction_service=entity_extraction_service,
+        )
+        app_logger.info("Graph RAG enabled - Neo4j connection successful")
+    except Exception as e:
+        app_logger.warning(f"Graph RAG disabled - Neo4j unavailable: {str(e)}")
+        st.sidebar.warning(
+            "⚠️ Graph RAG disabled. Neo4j not available. "
+            "Using vector-only retrieval. Start Neo4j with: docker-compose up -d"
+        )
 
     # Initialize application layer
     rag_service = RAGService(
         document_repository=document_repo,
         llm_service=llm_service,
+        hybrid_retrieval_service=hybrid_retrieval_service,
     )
     chat_service = ChatService(rag_service=rag_service)
 
@@ -302,11 +326,13 @@ def chat_panel(chat_service):
                                 relevance_pct = f"{relevance * 100:.1f}%"
                                 
                                 # Display with file name if available
+                                source_type = source.get("source_type", "vector")
+                                source_icon = "🕸️" if source_type == "graph" else "📊"
                                 if file_name:
-                                    st.caption(f"• **{file_name}** - Chunk {chunk_index} (Relevance: {relevance_pct})")
+                                    st.caption(f"{source_icon} **{file_name}** - Chunk {chunk_index} (Relevance: {relevance_pct}) [{source_type}]")
                                     st.caption(f"  Document ID: `{doc_id}`")
                                 else:
-                                    st.caption(f"• Document ID: `{doc_id}` - Chunk {chunk_index} (Relevance: {relevance_pct})")
+                                    st.caption(f"{source_icon} Document ID: `{doc_id}` - Chunk {chunk_index} (Relevance: {relevance_pct}) [{source_type}]")
                             else:
                                 # Old format - just document ID (backward compatibility)
                                 st.caption(f"• Document ID: {source}")
@@ -359,11 +385,13 @@ def chat_panel(chat_service):
                                         relevance_pct = f"{relevance * 100:.1f}%"
                                         
                                         # Display with file name if available
+                                        source_type = source.get("source_type", "vector")
+                                        source_icon = "🕸️" if source_type == "graph" else "📊"
                                         if file_name:
-                                            st.caption(f"• **{file_name}** - Chunk {chunk_index} (Relevance: {relevance_pct})")
+                                            st.caption(f"{source_icon} **{file_name}** - Chunk {chunk_index} (Relevance: {relevance_pct}) [{source_type}]")
                                             st.caption(f"  Document ID: `{doc_id}`")
                                         else:
-                                            st.caption(f"• Document ID: `{doc_id}` - Chunk {chunk_index} (Relevance: {relevance_pct})")
+                                            st.caption(f"{source_icon} Document ID: `{doc_id}` - Chunk {chunk_index} (Relevance: {relevance_pct}) [{source_type}]")
                                     else:
                                         # Old format - just document ID (backward compatibility)
                                         st.caption(f"• Document ID: {source}")
@@ -423,7 +451,9 @@ def main():
         - Get AI-powered answers with sources
 
         **Features:**
-        - Vector-based semantic search
+        - Vector-based semantic search (ChromaDB)
+        - Graph RAG with Neo4j (entity extraction & graph traversal)
+        - Hybrid retrieval combining vector + graph
         - OpenAI-powered responses
         - Source attribution
         - Chat history
@@ -444,6 +474,19 @@ def main():
             st.metric("Total Chunks", collection_info.get("total_chunks", 0))
             st.metric("Total Documents", collection_info.get("total_documents", 0))
             st.caption(f"Collection: `{collection_info.get('collection_name', 'N/A')}`")
+        
+        # Neo4j Graph Statistics
+        if rag_service.use_graph_rag and rag_service.hybrid_retrieval_service:
+            st.divider()
+            st.header("🕸️ Neo4j Graph")
+            try:
+                graph_stats = rag_service.hybrid_retrieval_service.neo4j_repository.get_graph_stats()
+                st.metric("Documents", graph_stats.get("documents", 0))
+                st.metric("Chunks", graph_stats.get("chunks", 0))
+                st.metric("Entities", graph_stats.get("entities", 0))
+                st.metric("Relationships", graph_stats.get("relationships", 0))
+            except Exception as e:
+                st.error(f"Error getting graph stats: {str(e)}")
 
 
 if __name__ == "__main__":

@@ -243,9 +243,13 @@ class ChromaDocumentRepository(IDocumentRepository):
                 partial_doc = Document(
                     id=doc_id,
                     content=chunk,  # Just the matching chunk
-                    source_type=metadata["source_type"],
+                    source_type=metadata.get("source_type", "text"),
                     file_name=metadata.get("file_name") or None,
-                    metadata={"chunk_index": metadata["chunk_index"]},
+                    metadata={
+                        "chunk_index": metadata["chunk_index"],
+                        "source_type": "vector",  # Explicitly mark as vector source
+                        "from_graph": False,
+                    },
                 )
 
                 doc_results.append((partial_doc, similarity))

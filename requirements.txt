@@ -25,3 +25,6 @@ pandas==2.2.3
 
 # Type Hints
 typing-extensions==4.12.2
+
+# Neo4j Graph Database
+neo4j==5.20.0
